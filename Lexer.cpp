@@ -12,13 +12,22 @@
         std::regex str(R"("[^"]+")");
         std::regex int_d(R"(0|([1-9][0-9]*))");
         std::regex double_d(R"((0|([1-9][0-9]*))\.*[0-9]*)");
-        std::regex keywords(R"(if|while|print)");
+        std::regex if_k(R"(if)");
+        std::regex while_k(R"(while)");
+        std::regex print_k(R"(print)");
 
-        if (std::regex_match(buffer, keywords))
+        if (std::regex_match(buffer, if_k))
         {
-            return Token(buffer, TokenType::Keyword);
+            return Token(buffer, TokenType::If);
         }
-
+        else if (std::regex_match(buffer, while_k))
+        {
+            return Token(buffer, TokenType::While);
+        }
+        else if (std::regex_match(buffer, print_k))
+        {
+            return Token(buffer, TokenType::Print);
+        }
         else if (ops.find(buffer) != ops.end())
         {
             return Token(buffer, TokenType::Op);

@@ -32,6 +32,7 @@
 #include "ExpNOT.h"
 #include "ExpSEM.h"
 #include "ExpBlock.h"
+#include "ExpPRINT.h"
 
 
 Parser::Parser(Node* node)
@@ -39,7 +40,7 @@ Parser::Parser(Node* node)
     this->root=node;
 }
 
-void Parser:: addTokens(std::vector<Token>& tokens) {
+void Parser::addTokens(std::vector<Token>& tokens) {
         std::vector<Token> tokenLines;
         bool semicolons = false;
         int brakes = 0;
@@ -55,14 +56,15 @@ void Parser:: addTokens(std::vector<Token>& tokens) {
                     tokenLines.push_back(it);
                 }
             } else {
-                if ((type == Identifier || type == Keyword)) {
+                if ((type == Identifier || type == If || type == While || type == Print)) {
                     if (semicolons) {
                         if (!tokenLines.empty()) {
                           checkTokensInBrc(tokenLines);
-                            parseIF(tokenLines);
-                            parseWHILE(tokenLines);
-                            parseAs(tokenLines);
-                            tokenLines.clear();
+                          parseIF(tokenLines);
+                          parsePRINT(tokenLines);
+                          parseWHILE(tokenLines);
+                          parseAs(tokenLines);
+                          tokenLines.clear();
                         }
                     }
                 }
@@ -80,6 +82,7 @@ void Parser:: addTokens(std::vector<Token>& tokens) {
         if (!tokenLines.empty()) {
             checkTokensInBrc(tokenLines);
             parseIF(tokenLines);
+            parsePRINT(tokenLines);
             parseWHILE(tokenLines);
             parseAs(tokenLines);
             tokenLines.clear();
@@ -253,13 +256,14 @@ void Parser:: addTokens(std::vector<Token>& tokens) {
 
     bool Parser::expKey() {
         if (actualToken==lastToken) return false;
-        if (actualToken->getType() != TokenType::Keyword) return false;
+        if (actualToken->getType() != TokenType::If) return false;
         else return true;
     }
 
 
 
     void Parser::parseAs(std::vector<Token>& tokens) {
+
         if (tokens.begin()->getType()!= TokenType::Identifier)
         {
             return;
@@ -307,7 +311,7 @@ void Parser:: addTokens(std::vector<Token>& tokens) {
 
     }
 
-    bool Parser::IsOperator(ExprType& type)
+    bool Parser::IsOperator(ExprType type)
     {
         if (type!=EXP_ID && type!=EXP_INT && type!=EXP_DOUBLE && type!=EXP_STRING &&
         type!=EXP_WHILE && type!=EXP_OP_ASSIGN_VAR
@@ -320,6 +324,14 @@ void Parser:: addTokens(std::vector<Token>& tokens) {
         switch (type) {
             case EXP_BRACKET_L:
             case EXP_BRACKET_R:
+                return 5;
+            case EXP_OP_NOT_EQUAL:
+            case EXP_OP_EQUAL:
+                return 4;
+            case EXP_OP_SMALLER:
+            case EXP_OP_MORE:
+            case EXP_MOREEQ:
+            case EXP_SMALEQ:
                 return 3;
             case EXP_OP_MULTIPLICATION:
             case EXP_OP_DIVISION:
@@ -387,6 +399,7 @@ std::list<Expr*> Parser::ReversePolishNotation(std::list <Expr *> expression)
         reverce.push_back(mstack.top());
         mstack.pop();
     }
+
     return reverce;
 
 }
@@ -397,8 +410,7 @@ Node* Parser::addNodeExpr(const std::list<Expr*>& postfix) {
 
     for (const auto &exp: postfix) {
         Node *node = new Node(exp);
-        if (node->getExpression()->getType() == EXP_OP_EQUAL || node->getExpression()->getType() == EXP_OP_SUM || node->getExpression()->getType() == EXP_OP_DIVISION
-        || node->getExpression()->getType() == EXP_OP_SUB || node->getExpression()->getType() == EXP_OP_MULTIPLICATION) {
+        if (IsOperator(node->getType())) {
             node->addChildFront(st.top());
             st.pop();
             node->addChildFront(st.top());
@@ -469,44 +481,50 @@ void Parser::parseIF(std::vector<Token>& tokens) {
             if (x.getValue() == "!=")
                 expression.push_back(new ExpNOTEQ(x.getValue()));
         }
-
     }
-
+    expression.pop_front();
     std::list<Expr *> comparation;
-        for (auto x: expression)
+    int i=0;
+    for (auto x: expression)
+    {
+        if (x->getType()!=EXP_LBRC)
         {
-            if (x->getType()!=EXP_LBRC)
-            {
-                if (x->getType()==EXP_BRACKET_L)
-                {
-                    if (!comparation.empty())
-                        comparation.push_back(x);
-                }
-                else comparation.push_back(x);
-                expression.pop_front();
-            }
-            else break;
+            comparation.push_back(x);
+            i++;
         }
-
-        comparation.pop_back();
-        auto condition = addNodeExpr(ReversePolishNotation(comparation));
-        Node *body = new Node(new ExpBlock("if"));
-        comparation.clear();
-        for (auto x: expression)
+        else break;
+    }
+    for (int m=0; m<i; m++)
+    {
+        expression.pop_front();
+    }
+    comparation.pop_back();
+    auto condition = addNodeExpr(ReversePolishNotation(comparation));
+    Node *body = new Node(new ExpBlock("if"));
+    comparation.clear();
+    expression.pop_front();
+    expression.pop_back();
+    Parser parser(body);
+    std::vector <Token> tokensBlock;
+    bool flag = false;
+    for (auto token : tokens)
+    {
+        if (token.getValue()=="}")
         {
-            if (x->getType()!=EXP_OP_SEMICOLON)
-                {
-                    if (x->getType()!=EXP_RBRC && x->getType()!=EXP_LBRC)
-                        comparation.push_back(x);
-
-                }
-            else {
-                    body->addChildBack(addNodeExpr(ReversePolishNotation(comparation)));
-                    comparation.clear();
-                }
+            break;
         }
-        root->addChildBack(new Node(new ExpIF(condition, body)));
+        else if (flag)
+        {
+            tokensBlock.push_back(token);
         }
+        else if (token.getValue()=="{")
+        {
+            flag=true;
+        }
+    }
+    parser.addTokens(tokensBlock);
+    root->addChildBack(new Node(new ExpIF(condition, body)));
+}
 
     void Parser::parseWHILE(std::vector<Token>& tokens) {
         std::list<Expr *> expression;
@@ -566,42 +584,60 @@ void Parser::parseIF(std::vector<Token>& tokens) {
                 if (x.getValue() == "!=")
                     expression.push_back(new ExpNOTEQ(x.getValue()));
             }
-
         }
-
-    std::list<Expr *> comparation;
-    for (auto x: expression)
-    {
-        if (x->getType()!=EXP_LBRC)
+        expression.pop_front();
+        std::list<Expr *> comparation;
+        int i=0;
+        for (auto x: expression)
         {
-            if (x->getType()==EXP_BRACKET_L)
+            if (x->getType()!=EXP_LBRC)
             {
-                if (!comparation.empty())
-                    comparation.push_back(x);
+                comparation.push_back(x);
+                i++;
             }
-            else comparation.push_back(x);
+            else break;
+        }
+        for (int m=0; m<i; m++)
+        {
             expression.pop_front();
         }
-        else break;
+        comparation.pop_back();
+        auto condition = addNodeExpr(ReversePolishNotation(comparation));
+        Node *body = new Node(new ExpBlock("while"));
+        comparation.clear();
+        expression.pop_front();
+        expression.pop_back();
+        Parser parser(body);
+        std::vector <Token> tokensBlock;
+        bool flag = false;
+        for (auto token : tokens)
+        {
+            if (token.getValue()=="}")
+            {
+                break;
+            }
+            else if (flag)
+            {
+                tokensBlock.push_back(token);
+            }
+            else if (token.getValue()=="{")
+            {
+                flag=true;
+            }
+        }
+        parser.addTokens(tokensBlock);
+        root->addChildBack(new Node(new ExpWHILE(condition, body)));
+}
+
+void Parser::parsePRINT(std::vector<Token>& tokens)
+{
+    if (tokens.begin()->getValue()!= "print")
+    {
+        return;
     }
 
-    comparation.pop_back();
-    auto condition = addNodeExpr(ReversePolishNotation(comparation));
-    Node *body = new Node(new ExpBlock("while"));
-    comparation.clear();
-    for (auto x: expression)
-    {
-        if (x->getType()!=EXP_OP_SEMICOLON)
-        {
-            if (x->getType()!=EXP_RBRC && x->getType()!=EXP_LBRC)
-                comparation.push_back(x);
-        }
-        else {
-            body->addChildBack(addNodeExpr(ReversePolishNotation(comparation)));
-            comparation.clear();
-        }
-    }
-    root->addChildBack(new Node(new ExpWHILE(condition, body)));
+    root->addChildBack(new Node(new ExpPRINT(tokens[1].getValue())));
+
 }
 
 Node* Parser::getNode()

@@ -18,7 +18,7 @@ Node::~Node() {
     }
 }
 
-ExprType Node::getType() {
+ExprType Node::getType() const {
     return expression->getType();
 }
 

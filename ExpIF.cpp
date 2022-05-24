@@ -23,7 +23,6 @@ void ExpIF::action(const InterpreterArgs& args) const {
     compilerCondition.getStack().pop();
 
     if ((bool) *condition) {
-        //args.functions.push_front(functions);
 
         Interpreter compilerBlock(args.variablesGlobal);
         compilerBlock.execute(blockExecute);
@@ -35,5 +34,5 @@ void ExpIF::action(const InterpreterArgs& args) const {
 }
 
 std::string ExpIF::toString() const {
-    return NULL; // "if\n        " + ifBrascet->toString(2) + "\n        execute " + body->toString(2);
+    return NULL;
 }

@@ -25,13 +25,8 @@ void ExpWHILE::action(const InterpreterArgs& args) const {
     compilerCondition.getStack().pop();
 
     while ((bool) *condition) {
-
-
         Interpreter compilerExecute(args.variablesGlobal);
         compilerExecute.execute(blockExecute);
-
-
-
         compilerCondition.execute(blockCondition);
         delete condition;
         condition = compilerCondition.getStack().top();
@@ -44,5 +39,5 @@ void ExpWHILE::action(const InterpreterArgs& args) const {
 
 
 std::string ExpWHILE::toString() const {
-    return NULL;// "while\n        " + whileBrascet->toString(2) + "\n        execute " + body->toString(2);
+    return NULL;
 }

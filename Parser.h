@@ -42,7 +42,7 @@ public:
     Parser(Node* node);
     void addTokens(std::vector<Token> &tokens);
     void parseAs(std::vector<Token>& tokens);
-    bool IsOperator(ExprType& type);
+    bool IsOperator(ExprType type);
     int Priority(ExprType type);
     std::list<Expr*> ReversePolishNotation(std::list <Expr *>);
     Node* addNodeExpr(const std::list<Expr *>&);
@@ -54,6 +54,8 @@ public:
     Node *getNode();
 
     void parseWHILE(std::vector<Token> &tokens);
+
+    void parsePRINT(std::vector<Token> &tokens);
 };
 
 #endif //PROGRAM_LANGUAGE_PARSER_H

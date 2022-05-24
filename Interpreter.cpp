@@ -30,6 +30,7 @@ Interpreter::~Interpreter() {
 }
 
 void Interpreter::execute(const Node* tree) {
+
     for (auto node: tree->getChildren()) {
         execute(node);
 

@@ -13,7 +13,7 @@ enum ExprType {
     EXP_INT,
     EXP_DOUBLE,
     EXP_STRING,
-
+    EXP_PRINT,
     EXP_OP_MULTIPLICATION,
     EXP_OP_DIVISION,
     EXP_OP_SUM,

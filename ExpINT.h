@@ -12,7 +12,6 @@
 class ExpINT final: public Expr {
 private:
     const long long value;
-    std::string id;
     void action(const InterpreterArgs& args) const override;
     std::string toString() const;
 

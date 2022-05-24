@@ -7,7 +7,8 @@
 #include<unordered_map>
 
 int main() {
-    std::unordered_map<TokenType, std::string> tokenMap = {{TokenType::Keyword, "Keyword"},
+    std::unordered_map<TokenType, std::string> tokenMap = {{TokenType::If, "If"},
+                                                           {TokenType::While, "While"},
                                                            {TokenType::Identifier, "Identifier"},
                                                            {TokenType::Operator, "Operator"},
                                                            {TokenType::Int_D, "Int_D"},
@@ -15,6 +16,7 @@ int main() {
                                                            {TokenType::Semicolons, "Semicolon"},
                                                            {TokenType::L_br, "L_br"},
                                                            {TokenType::R_br, "R_br"},
+                                                           {TokenType::Print, "print"},
                                                            {TokenType::L_brc, "L_brc"},
                                                            {TokenType::Brack, "Brack"},
                                                            {TokenType::R_brc, "R_brc"},

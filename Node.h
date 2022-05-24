@@ -19,7 +19,7 @@ public:
     Node(const Expr*, const std::list<Node*>&);
     ~Node();
 
-    ExprType getType();
+    ExprType getType() const;
     [[nodiscard]] const Expr* getExpression() const;
 
     void addChildFront(Node *child);
